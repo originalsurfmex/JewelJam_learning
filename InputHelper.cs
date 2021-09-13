@@ -23,21 +23,36 @@ namespace JewelJam
             _mouseClick = _mouse.LeftButton == ButtonState.Pressed && _mousePrev.LeftButton == ButtonState.Released;
         }
 
+        /// <summary>
+        /// Vector2 get mouse position
+        /// </summary>
         public Vector2 MousePos
         {
             get { return _mousePos; }
         }
 
+        /// <summary>
+        /// boolean: register a mouse click
+        /// </summary>
         public bool MouseClick
         {
             get { return _mouseClick; }
         }
 
+        /// <summary>
+        /// boolean: if left mouse button was clicked
+        /// </summary>
+        /// <returns> true if button was clicked and previously released</returns>
         public bool MouseLeftButton()
         {
             return _mouse.LeftButton == ButtonState.Pressed && _mousePrev.LeftButton == ButtonState.Released;
         }
 
+        /// <summary>
+        /// boolean: 
+        /// </summary>
+        /// <param name="key"></param>
+        /// <returns></returns>
         public bool KeyPressed(Keys key)
         {
             return _key.IsKeyDown(key) && _keyPrev.IsKeyUp(key);

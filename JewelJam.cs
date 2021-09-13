@@ -1,63 +1,70 @@
 ﻿using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
+using System;
 
 namespace JewelJam
 {
-    public class JewelJam : Game
+    class JewelJam : GamEx
     {
-        private GraphicsDeviceManager _graphics;
-        private SpriteBatch _spriteBatch;
 
         private Texture2D _background, _cursor;
-        private Point _worldSize, _windowSize, _screenSize;
-        private Matrix _spriteScale;
+        private Texture2D[] _jewels;
 
-        InputHelper inputHelper;
+        private const int xGrids = 5;
+        private const int yGrids = 10;
+        private int[,] _grid;
+
+        private int _cellSize;
+        private Vector2 _gridOffset, _jewelPos;
 
         public JewelJam()
         {
-            _graphics = new GraphicsDeviceManager(this);
-            Content.RootDirectory = "Content";
             IsMouseVisible = true;
+            _grid = new int[xGrids, yGrids];
 
-            inputHelper = new InputHelper();
+            _jewels = new Texture2D[3];
+            for (int x = 0; x < xGrids; x++)
+                for (int y = 0; y < yGrids; y++)
+                {
+                    _grid[x, y] = Rand.Next(_jewels.Length);
+                }
         }
-
-        //protected override void Initialize()
-        //{
-        //    base.Initialize();
-        //}
 
         protected override void LoadContent()
         {
-            _spriteBatch = new SpriteBatch(GraphicsDevice);
+            base.LoadContent();
 
             _background = Content.Load<Texture2D>("img/spr_background");
             _cursor = Content.Load<Texture2D>("img/spr_single_jewel1");
-            _worldSize = new Point(_background.Width, _background.Height);
-            _windowSize = new Point(1024, 768);
 
+            _worldSize = new Point(_background.Width, _background.Height);
+
+            for (int i = 0; i < _jewels.Length; i++)
+                _jewels[i] = Content.Load<Texture2D>("img/spr_single_jewel" + (i+1));
+
+            _cellSize = _jewels[0].Width + 20;
+            _gridOffset = new Vector2(90, _cellSize * 2 + 20);
             FullScreen = false;
+        }
+
+        protected override void HandleInput()
+        {
+            base.HandleInput();
+
+            if (inputHelper.KeyPressed(Keys.Space))
+                MoveRowsDown();
         }
 
         protected override void Update(GameTime gameTime)
         {
-            inputHelper.Update();
-
-            if (inputHelper.KeyPressed(Keys.Escape))
-                Exit();
-
-            if (inputHelper.KeyPressed(Keys.F5))
-                FullScreen = !FullScreen;
-
             base.Update(gameTime);
         }
 
         protected override void Draw(GameTime gameTime)
         {
-            GraphicsDevice.Clear(Color.Black);
             base.Draw(gameTime);
+            GraphicsDevice.Clear(Color.Black);
             _spriteBatch.Begin(SpriteSortMode.Deferred, null,
                 null, null, null,
                 null, _spriteScale);
@@ -65,67 +72,25 @@ namespace JewelJam
             _spriteBatch.Draw(_background, Vector2.Zero, Color.White);
             _spriteBatch.Draw(_cursor, Screen2World(inputHelper.MousePos), Color.White);
 
+            for (int x = 0; x < xGrids; x++)
+                for (int y = 0; y < yGrids; y++)
+                {
+                    _jewelPos = _gridOffset + new Vector2(x, y) * _cellSize; 
+                    _spriteBatch.Draw(_jewels[_grid[x,y]], _jewelPos, Color.White);
+                }
+
             _spriteBatch.End();
         }
 
         //----------------------------------------------------------------------------------
-        bool FullScreen
-        {
-            get { return _graphics.IsFullScreen; }
-            set { ApplyResolution(value); }
-        }
-        private void ApplyResolution(bool fullScreen)
-        {
-            _graphics.IsFullScreen = fullScreen;
-            //set full screen to actual screen size if true
-            if (fullScreen)
-            {
-                _screenSize = new Point(
-                    GraphicsAdapter.DefaultAdapter.CurrentDisplayMode.Width,
-                    GraphicsAdapter.DefaultAdapter.CurrentDisplayMode.Height);
-            }
-            else
-                _screenSize = _windowSize; //screen size is key variable now
-                //_screenSize = _worldSize; //screen size is key variable now
 
-            //setup window sizes based on hard coded values in load content
-            _graphics.PreferredBackBufferWidth = _screenSize.X;
-            _graphics.PreferredBackBufferHeight = _screenSize.Y;
-            _graphics.ApplyChanges();
-
-            //calculate and set the viewport to use
-            GraphicsDevice.Viewport = CalcVport(_screenSize);
-
-            //scale graphics so game fits in viewport window
-            _spriteScale = Matrix.CreateScale(
-                (float)GraphicsDevice.Viewport.Width / _worldSize.X,
-                (float)GraphicsDevice.Viewport.Height / _worldSize.Y, 1);
-        }
-
-        Viewport CalcVport(Point windowSize)
-        {
-            Viewport vport = new Viewport();
-
-            float gameAspectR = (float)_worldSize.X / _worldSize.Y;
-            float windowAspectR = (float)windowSize.X / windowSize.Y;
-
-            if(windowAspectR > gameAspectR)
-            {
-                vport.Width = (int)(windowSize.Y * gameAspectR);
-                vport.Height = windowSize.Y;
-            }
-            else
-            {
-                vport.Width = (int)(windowSize.X);
-                vport.Height = (int)(windowSize.X / gameAspectR);
-            }
-
-            vport.X = (windowSize.X - vport.Width) / 2;
-            vport.Y = (windowSize.Y - vport.Height) / 2;
-            return vport;
-        }
-
-        Vector2 Screen2World(Vector2 screenPos)
+        /// <summary>
+        /// Scale and locate a screen position into the viewport
+        /// by scaling and locating with the world
+        /// </summary>
+        /// <param name="screenPos">screen position</param>
+        /// <returns></returns>
+        private Vector2 Screen2World(Vector2 screenPos)
         {
             Vector2 vPortTopLeft =
                 new Vector2(GraphicsDevice.Viewport.X, GraphicsDevice.Viewport.Y);
@@ -135,5 +100,21 @@ namespace JewelJam
 
             return (screenPos - vPortTopLeft) * screen2WorldScale;
         }
-    }
+
+        void MoveRowsDown()
+        {
+            for (int y = yGrids - 1; y > 0; y--)
+            {
+                for (int x = 0; x < xGrids; x++)
+                {
+                    _grid[x, y] = _grid[x, y - 1];
+                }
+            }
+            //refill top row
+            for (int x = 0; x < xGrids; x++)
+            {
+                _grid[x, 0] = Rand.Next(3);
+            }
+        }
+     }
 }

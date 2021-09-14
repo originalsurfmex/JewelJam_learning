@@ -7,8 +7,8 @@ namespace JewelJam
         [STAThread]
         private static void Main()
         {
-            using (var game = new JewelJam())
-                game.Run();
+            using var game = new JewelJam();
+            game.Run();
         }
     }
 }

@@ -13,7 +13,7 @@ namespace JewelJam
         protected GraphicsDeviceManager _graphics;
         protected SpriteBatch _spriteBatch;
 
-        //keyboard moust helpers, vieport/world scaling stuff
+        //keyboard mouse helpers, viewport/world scaling stuff
         protected InputHelper inputHelper;
         protected Point _worldSize, _windowSize, _screenSize;
         protected Matrix _spriteScale;
@@ -22,6 +22,7 @@ namespace JewelJam
         public static ContentManager ContentMgr { get; private set; }
 
         public static Point WorldSize { get; protected set; }
+        protected List<GameObj> _gameWorld;
 
         protected GamEx()
         {
@@ -46,6 +47,8 @@ namespace JewelJam
         {
             _spriteBatch = new SpriteBatch(GraphicsDevice);
             ContentMgr = Content;
+
+            _gameWorld = new List<GameObj>();
             FullScreen = false;
         }
 
@@ -54,18 +57,40 @@ namespace JewelJam
             base.Update(gameTime);
             HandleInput();
 
-            if (inputHelper.KeyPressed(Keys.Escape))
-                Exit();
-
-            if (inputHelper.KeyPressed(Keys.F5))
-                FullScreen = !FullScreen;
+            foreach (GameObj obj in _gameWorld)
+                obj.Update(gameTime);
         }
 
         protected virtual void HandleInput()
         {
             inputHelper.Update();
-        }
 
+            if (inputHelper.KeyPressed(Keys.Escape))
+                Exit();
+
+            if (inputHelper.KeyPressed(Keys.F5))
+                FullScreen = !FullScreen;
+
+            foreach (GameObj obj in _gameWorld)
+                obj.HandleInput(inputHelper);
+       }
+
+        protected override void Draw(GameTime gameTime)
+        {
+            base.Draw(gameTime);
+            GraphicsDevice.Clear(Color.Black);
+            _spriteBatch.Begin(SpriteSortMode.Deferred, 
+                null, null, 
+                null, null, 
+                null, _spriteScale);
+
+            foreach (GameObj obj in _gameWorld)
+                obj.Draw(gameTime, _spriteBatch);
+            
+            
+
+            _spriteBatch.End();
+        }
         /// <summary>
         /// Fullscreen boolean function than will trigger the ApplyResolution function
         /// if it is set "set { ApplyResolution(value); }"

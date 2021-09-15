@@ -6,6 +6,14 @@ using Microsoft.Xna.Framework.Input;
 
 namespace JewelJam.engine
 {
+    /// <summary>
+    /// extends the Monogame Game loop with some boilerplate like GraphicsDeviceManager, InputHelper,
+    /// window sizing/scaling, ContentManager, SpriteBatch
+    ///
+    /// also uses a Game Object that is a List of Game Objects called a _gameWorld
+    /// this game world recursively updates all the Game Objects as part of the Draw, Update, Input etc loops
+    /// those objects are part of a Parent -> Child hierarchy, this allows them to be recursively updated
+    /// </summary>
     internal class GamEx : Game
     {
         private readonly GraphicsDeviceManager _graphics;
@@ -23,34 +31,21 @@ namespace JewelJam.engine
         protected Matrix _spriteScale;
         protected Point _worldSize;
 
+        public static Random Rand { get; private set; }
+        private static Point WorldSize => default;
+        //public static Point WorldSize { get; protected set; } //same as default return
+        public static ContentManager ContentMgr { get; private set; }
+        
         protected GamEx()
         {
             _graphics = new GraphicsDeviceManager(this);
             Content.RootDirectory = "Content";
             _inputHelper = new InputHelper();
-
             Rand = new Random();
 
             //world size is scaled to background image, grids, etc
-            //_worldSize = new Point(1024, 768);
             _worldSize = WorldSize;
             _windowSize = new Point(800, 640);
-        }
-
-        public static Random Rand { get; private set; }
-        public static ContentManager ContentMgr { get; private set; }
-
-        private static Point WorldSize => default;
-        //public static Point WorldSize { get; protected set; } //same as default return
-
-        /// <summary>
-        ///     Fullscreen boolean function than will trigger the ApplyResolution function
-        ///     if it is set "set { ApplyResolution(value); }"
-        /// </summary>
-        protected bool FullScreen
-        {
-            get => _graphics.IsFullScreen;
-            set => ApplyResolution(value);
         }
 
         //protected override void Initialize()
@@ -70,12 +65,8 @@ namespace JewelJam.engine
 
         protected override void Update(GameTime gameTime)
         {
-            base.Update(gameTime);
             HandleInput();
-
             _gameWorld.Update(gameTime);
-            // foreach (GameObj obj in _gameWorld)
-            //     obj.Update(gameTime);
         }
 
         protected virtual void HandleInput()
@@ -84,13 +75,10 @@ namespace JewelJam.engine
 
             if (_inputHelper.KeyPressed(Keys.Escape))
                 Exit();
-
             if (_inputHelper.KeyPressed(Keys.F5))
                 FullScreen = !FullScreen;
 
             _gameWorld.HandleInput(_inputHelper);
-            // foreach (GameObj obj in _gameWorld)
-            //     obj.HandleInput(inputHelper);
         }
 
         protected override void Draw(GameTime gameTime)
@@ -108,6 +96,17 @@ namespace JewelJam.engine
             _gameWorld.Draw(gameTime, _spriteBatch);
 
             _spriteBatch.End();
+        }
+
+
+        /// <summary>
+        ///     Fullscreen boolean function than will trigger the ApplyResolution function
+        ///     if it is set "set { ApplyResolution(value); }"
+        /// </summary>
+        protected bool FullScreen
+        {
+            get => _graphics.IsFullScreen;
+            set => ApplyResolution(value);
         }
 
         /// <summary>

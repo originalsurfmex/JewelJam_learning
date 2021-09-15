@@ -3,6 +3,10 @@ using Microsoft.Xna.Framework.Graphics;
 
 namespace JewelJam.engine
 {
+    /// <summary>
+    /// this is a type of game object that includes a sprite from the Content manager
+    /// it also includes a rectangle for collision checking and a Draw loop function
+    /// </summary>
     internal class SpriteGameObj : GameObj
     {
         private readonly Texture2D _sprite;

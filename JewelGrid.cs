@@ -6,6 +6,14 @@ using Microsoft.Xna.Framework.Input;
 
 namespace JewelJam
 {
+    /// <summary>
+    /// game object that holds a 2D array of other game objects in a grid.
+    /// this acts as a parent object that holds the grid locations of child objects
+    /// locations are recursive so if this move then all the child objects move too
+    ///
+    /// the recursive location function for globally locating objects is found
+    /// within the class of a basic game object, so each child has this global location function
+    /// </summary>
     internal class JewelGrid : GameObj
     {
         private readonly int _cellSize;

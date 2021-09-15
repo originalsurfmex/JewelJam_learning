@@ -3,6 +3,11 @@ using Microsoft.Xna.Framework.Input;
 
 namespace JewelJam.engine
 {
+    /// <summary>
+    /// extends Monogame input handling capabilities, this input helper can be created once
+    /// per game and passed around to all other objects that will respond to input, most objects
+    /// will likely include a HandleInput(InputHelper inputHelper) method as a result
+    /// </summary>
     public class InputHelper
     {
         private KeyboardState _key, _keyPrev;

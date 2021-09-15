@@ -3,6 +3,13 @@ using Microsoft.Xna.Framework.Graphics;
 
 namespace JewelJam.engine
 {
+    /// <summary>
+    /// basic game object, can be used as a child of a parent object
+    /// includes a recursive global positioning function so the child will move with the parent
+    ///
+    /// also includes overrides for the basic Monogame Game loop, so that any objects derived form
+    /// this class can handle their own Update, Draw, etc.
+    /// </summary>
     internal class GameObj
     {
         private Vector2 _velocity;

@@ -5,8 +5,16 @@ using Microsoft.Xna.Framework.Graphics;
 namespace JewelJam
 {
     /// <summary>
-    ///     this is basically the game world, it extends whatever
-    ///     base game classes there are to extend
+    ///     this only adds children objects to the game world parent list via Load Content.  There may
+    ///     also be some WIP or custom stuff in its Draw Loop.
+    ///
+    ///     parent -> child hierachy:
+    ///     game world parent list = game object with a list of game objects
+    ///     children = game objects
+    /// 
+    ///     the game world parent list has functions that recursively Update, Draw, handle input,
+    ///     etc for each of the children those functions extend the base Monogame Game class
+    ///     which handles the game loop.
     /// </summary>
     internal class JewelJam : GamEx
     {
@@ -22,13 +30,11 @@ namespace JewelJam
 
             var background = new SpriteGameObj("img/spr_background");
             _worldSize = new Point(background.Width, background.Height);
-            //_gameWorld.Add(_background);
             _gameWorld.AddChild(background);
 
             _cellSize = new Jewel(0).Width + 20;
             _gridOffset = new Vector2(90, _cellSize * 2 + 20);
             var jewelGrid = new JewelGrid(XGrids, YGrids, _cellSize, _gridOffset);
-            //_gameWorld.Add(jewelGrid);
             _gameWorld.AddChild(jewelGrid);
 
             _cursor = Content.Load<Texture2D>("img/spr_single_jewel1");

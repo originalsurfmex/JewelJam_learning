@@ -2,6 +2,7 @@
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
+
 // ReSharper disable SuggestVarOrType_BuiltInTypes
 
 namespace JewelJam
@@ -21,12 +22,16 @@ namespace JewelJam
         private readonly int _xGrids;
         private readonly int _yGrids;
 
-        public JewelGrid(int width, int height, int cellSize, Vector2 offset)
+        public int XGrids => _xGrids;
+        public int YGrids => _yGrids;
+
+
+        public JewelGrid(int width, int height, int cellSize)
         {
             _xGrids = width;
             _yGrids = height;
             _cellSize = cellSize;
-            PosLocal = offset;
+            //PosLocal = offset; //no longer needed, now part of the jewel grid
 
             Reset();
         }
@@ -41,7 +46,7 @@ namespace JewelJam
                 // hard coded based on number of jewel sprites
                 _jewelGrid[x, y] = new Jewel(GamEx.Rand.Next(3))
                 {
-                    PosLocal = GetCellPos(x,y),
+                    PosLocal = GetCellPos(x, y),
                     Parent = this
                 };
             }
@@ -68,9 +73,56 @@ namespace JewelJam
         /// <param name="x">grid cell # in the x direction</param>
         /// <param name="y">grid cell # in the y direction</param>
         /// <returns>Position vector (x,y coords in game world space)</returns>
-        private Vector2 GetCellPos(int x, int y)
+        public Vector2 GetCellPos(int x, int y)
         {
             return new Vector2(x * _cellSize, y * _cellSize);
+        }
+
+        /// <summary>
+        /// shift jewels left or right and move the first jewel to the opposite end
+        /// </summary>
+        /// <param name="selectedRow">whichever row is currently selected</param>
+        /// <param name="leftRight">bool: right==true, left==false</param>
+        public void ShiftColumns(int selectedRow, bool leftRight)
+        {
+            // store the first and last jewel so they can be moved later
+            Jewel first = _jewelGrid[0, selectedRow];
+            Jewel last = _jewelGrid[_xGrids - 1, selectedRow];
+
+            // replace all jewels with their neighbor to the right
+            // true = right, false = left
+            if (leftRight)
+            {
+                // go through jewel positions starting from the beginning 
+                // don't go through the last one otherwise you're out of bounds
+                for (int x = 0; x < _xGrids - 1; x++)
+                {
+                    // replace each jewel with the one on the right, using grid coordinates
+                    _jewelGrid[x, selectedRow] = _jewelGrid[x + 1, selectedRow];
+                    // update each jewels local coords (the parent class uses for world coords)
+                    _jewelGrid[x, selectedRow].PosLocal = GetCellPos(x, selectedRow);
+                }
+                // replace the last jewel with the first one that was saved earlier
+                _jewelGrid[_xGrids - 1, selectedRow] = first;
+                // update the position of the newly replaced jewel, using the game object local position function
+                first.PosLocal = GetCellPos(_xGrids - 1, selectedRow);
+            }
+            else
+            {
+                // go through jewel positions starting from the end
+                // dont go through the first one otherwise you're out of bounds
+                for (int x = _xGrids - 1; x > 0; x--)
+                {
+                    // replace each jewel with the one on the right, using grid coordinates
+                    _jewelGrid[x, selectedRow] = _jewelGrid[x - 1, selectedRow];
+                    // update each jewels local coords (the parent class uses for world coords)
+                    _jewelGrid[x, selectedRow].PosLocal = GetCellPos(x, selectedRow);
+                }
+                // replace the first jewel with the last one that was saved earlier
+                _jewelGrid[0, selectedRow] = last;
+                // update the position of the newly replaced jewel, using the game object local position function
+                last.PosLocal = GetCellPos(0, selectedRow);
+            }
         }
 
         private void MoveRowsDown()

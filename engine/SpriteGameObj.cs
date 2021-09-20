@@ -10,7 +10,7 @@ namespace JewelJam.engine
     internal class SpriteGameObj : GameObj
     {
         private readonly Texture2D _sprite;
-        private readonly Vector2 _origin;
+        protected Vector2 _origin;
 
         public SpriteGameObj(string sprite)
         {

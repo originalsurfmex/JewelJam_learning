@@ -33,9 +33,21 @@ namespace JewelJam
             _gameWorld.AddChild(background);
 
             _cellSize = new Jewel(0).Width + 20;
-            _gridOffset = new Vector2(90, _cellSize * 2 + 20);
-            var jewelGrid = new JewelGrid(XGrids, YGrids, _cellSize, _gridOffset);
-            _gameWorld.AddChild(jewelGrid);
+            _gridOffset = new Vector2(100, _cellSize * 2 + 20);
+            
+            // add a "playing field" parent object for the grid and the row selector
+            var playingField = new GameObjList
+            {
+                PosLocal = _gridOffset
+            };
+            _gameWorld.AddChild(playingField);
+            
+            // add the grid to the playing field
+            var jewelGrid = new JewelGrid(XGrids, YGrids, _cellSize);
+            playingField.AddChild(jewelGrid);
+            
+            // add the row selector to the playing field
+            playingField.AddChild(new RowSelector(jewelGrid));
 
             _cursor = Content.Load<Texture2D>("img/spr_single_jewel1");
             FullScreen = false;
